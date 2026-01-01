@@ -28,6 +28,8 @@ export async function discoverRepos(
 
   try {
     const query = buildSearchQuery(filters, genres);
+    // Log the query for debugging (remove in production if needed)
+    console.log('GitHub search query:', query);
     const url = `${GITHUB_API_BASE}/search/repositories?q=${encodeURIComponent(query)}&sort=updated&order=desc&per_page=${candidatePoolSize}`;
 
     const headers: HeadersInit = {
@@ -66,6 +68,9 @@ export async function discoverRepos(
     }
 
     const data: GitHubSearchResponse = await response.json();
+
+    // Log response for debugging
+    console.log('GitHub API response - total_count:', data.total_count, 'items:', data.items.length);
 
     // Filter out excluded repos and sample
     let candidates = data.items.filter(repo => !excludeIds.includes(repo.id));

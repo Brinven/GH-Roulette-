@@ -15,16 +15,37 @@ export function generateRandomSeed(): string {
 
 /**
  * Builds a GitHub search query with optional filters
+ * 
+ * Note: GitHub's search API has limitations with complex OR queries when
+ * combining multiple filter categories. When both genre and OS filters are
+ * active, we use the first topic from each to ensure results are returned.
+ * Users can reorder topics in genre definitions to prioritize specific topics.
  */
 export function buildSearchQuery(filters?: Filters, genres?: Genre[]): string {
   const parts: string[] = [];
+  
+  // Track if we have multiple topic-based filters
+  const hasGenre = !!(filters?.genre && genres);
+  const hasOS = !!filters?.os;
+  const hasMultipleTopicFilters = hasGenre && hasOS;
 
   // Add genre topics if specified
   if (filters?.genre && genres) {
     const genre = genres.find(g => g.id === filters.genre);
     if (genre && genre.topics.length > 0) {
-      const topicQueries = genre.topics.map(topic => `topic:${topic}`).join(' ');
-      parts.push(topicQueries);
+      if (hasMultipleTopicFilters) {
+        // When multiple topic filters are active, use first topic to avoid
+        // GitHub API limitations with complex OR queries across categories
+        parts.push(`topic:${genre.topics[0]}`);
+      } else {
+        // When only one topic filter category, we can use OR
+        if (genre.topics.length === 1) {
+          parts.push(`topic:${genre.topics[0]}`);
+        } else {
+          const topicQueries = genre.topics.map(topic => `topic:${topic}`).join(' OR ');
+          parts.push(`(${topicQueries})`);
+        }
+      }
     }
   }
 
@@ -43,7 +64,19 @@ export function buildSearchQuery(filters?: Filters, genres?: Genre[]): string {
       ios: ['ios', 'swift'],
     };
     const topics = osTopics[filters.os.toLowerCase()] || [filters.os];
-    parts.push(topics.map(t => `topic:${t}`).join(' '));
+    
+    if (hasMultipleTopicFilters) {
+      // When multiple topic filters are active, use first topic
+      parts.push(`topic:${topics[0]}`);
+    } else {
+      // When only one topic filter category, we can use OR
+      if (topics.length === 1) {
+        parts.push(`topic:${topics[0]}`);
+      } else {
+        const topicQueries = topics.map(t => `topic:${t}`).join(' OR ');
+        parts.push(`(${topicQueries})`);
+      }
+    }
   }
 
   // Add min stars
@@ -56,6 +89,7 @@ export function buildSearchQuery(filters?: Filters, genres?: Genre[]): string {
     parts.push(generateRandomSeed());
   }
 
+  // Join all parts with space (AND logic between different filter types)
   return parts.join(' ');
 }
 
