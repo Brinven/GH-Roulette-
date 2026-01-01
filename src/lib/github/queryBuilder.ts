@@ -38,13 +38,10 @@ export function buildSearchQuery(filters?: Filters, genres?: Genre[]): string {
         // GitHub API limitations with complex OR queries across categories
         parts.push(`topic:${genre.topics[0]}`);
       } else {
-        // When only one topic filter category, we can use OR
-        if (genre.topics.length === 1) {
-          parts.push(`topic:${genre.topics[0]}`);
-        } else {
-          const topicQueries = genre.topics.map(topic => `topic:${topic}`).join(' OR ');
-          parts.push(`(${topicQueries})`);
-        }
+        // When only one topic filter category, use first topic
+        // GitHub's API has issues with OR-only queries, so we use the first topic
+        // Users can reorder topics in genre definition to prioritize
+        parts.push(`topic:${genre.topics[0]}`);
       }
     }
   }
@@ -69,13 +66,9 @@ export function buildSearchQuery(filters?: Filters, genres?: Genre[]): string {
       // When multiple topic filters are active, use first topic
       parts.push(`topic:${topics[0]}`);
     } else {
-      // When only one topic filter category, we can use OR
-      if (topics.length === 1) {
-        parts.push(`topic:${topics[0]}`);
-      } else {
-        const topicQueries = topics.map(t => `topic:${t}`).join(' OR ');
-        parts.push(`(${topicQueries})`);
-      }
+      // When only one topic filter category, use first topic
+      // GitHub's API has issues with OR-only queries
+      parts.push(`topic:${topics[0]}`);
     }
   }
 

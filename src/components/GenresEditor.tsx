@@ -87,9 +87,12 @@ export default function GenresEditor({ genres, onGenresChange }: GenresEditorPro
                   type="text"
                   value={editTopics}
                   onChange={(e) => setEditTopics(e.target.value)}
-                  placeholder="Topics (comma-separated)"
+                  placeholder="Topics (comma-separated) - first topic is used"
                   className="w-full px-2 py-1 text-sm border rounded"
                 />
+                <p className="text-xs text-gray-500">
+                  Note: The first topic in the list is used when searching. Order matters!
+                </p>
                 <div className="flex gap-2">
                   <button
                     onClick={handleSave}

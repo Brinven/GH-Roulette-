@@ -55,6 +55,12 @@ export default function SettingsPage() {
         <div className="space-y-6">
           {/* Genres Section */}
           <div className="border rounded-lg p-6 bg-white">
+            <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+              <p className="text-sm text-yellow-800">
+                <strong>Tip:</strong> Topic order matters! The <strong>first topic</strong> in each genre's list is used when searching. 
+                Put the most common or broadest topic first for best results. This is due to GitHub's search API limitations.
+              </p>
+            </div>
             <GenresEditor genres={genres} onGenresChange={handleGenresChange} />
           </div>
 

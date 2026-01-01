@@ -154,6 +154,13 @@ Filters are **optional** and **off by default** for maximum randomness. To use t
 3. Click **"Find 5 Random Repos"** - results will be biased toward your filters
 4. Click **"Reset to Random"** to clear all filters
 
+**Important Note About Topic Filters:**
+Due to limitations in GitHub's search API, when using genre or OS filters, the app uses the **first topic** from each category's topic list. This means:
+- The order of topics in your genre definitions matters
+- Put the most common/broad topic first for best results
+- For example, if your "LLM/AI" genre has `['llm', 'ai', 'machine-learning']`, it will search for `topic:llm`
+- You can reorder topics in Settings → Genres to prioritize which topic is used
+
 ### Managing Genres
 
 Genres are custom topic categories you can create:
@@ -167,6 +174,12 @@ Genres are custom topic categories you can create:
    - **Name**: Display name (e.g., "LLM/AI")
    - **Topics**: Comma-separated GitHub topics (e.g., "llm, ai, machine-learning")
 4. Genres are saved automatically and persist across sessions
+
+**Topic Order Matters:**
+- The **first topic** in your list is the one used when searching
+- Put the most common or broadest topic first for best results
+- Example: For "LLM/AI", if you want to prioritize `ai` over `llm`, list topics as: `ai, llm, machine-learning, deep-learning`
+- This is due to GitHub's search API limitations with complex OR queries
 
 **Default Genres:**
 - **LLM/AI**: llm, ai, machine-learning, deep-learning
