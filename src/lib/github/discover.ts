@@ -70,12 +70,20 @@ export async function discoverRepos(
     // Filter out excluded repos and sample
     let candidates = data.items.filter(repo => !excludeIds.includes(repo.id));
 
-    // If we don't have enough candidates, use what we have
-    if (candidates.length < resultCount) {
-      candidates = data.items; // Fall back to all items if too many exclusions
+    // If we don't have enough candidates after filtering, use what we have
+    // (still respecting the exclusion filter - don't bypass it)
+    // This means we might return fewer than resultCount repos, which is better
+    // than returning previously seen repos
+    if (candidates.length === 0 && data.items.length > 0) {
+      // Only if ALL results are excluded, we have a problem
+      // In this case, we could either:
+      // 1. Return empty (respects exclusion)
+      // 2. Return a smaller sample from non-excluded items
+      // We'll go with option 1 to respect user's exclusion preference
+      candidates = [];
     }
 
-    // Sample random repos
+    // Sample random repos (may return fewer than resultCount if exclusions are too aggressive)
     const repos = sampleRandom(candidates, resultCount);
 
     return {

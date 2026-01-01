@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { discoverRepos, DiscoverOptions } from '@/lib/github/discover';
+import { Genre } from '@/lib/github/types';
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
@@ -11,8 +12,37 @@ export async function GET(request: NextRequest) {
     minStars: searchParams.get('minStars') ? parseInt(searchParams.get('minStars')!, 10) : undefined,
   };
 
-  const genres = searchParams.get('genres') ? JSON.parse(searchParams.get('genres')!) : undefined;
-  const excludeIds = searchParams.get('excludeIds') ? JSON.parse(searchParams.get('excludeIds')!) : [];
+  // Parse genres with error handling
+  let genres: Genre[] | undefined = undefined;
+  const genresParam = searchParams.get('genres');
+  if (genresParam) {
+    try {
+      genres = JSON.parse(genresParam);
+    } catch (error) {
+      return NextResponse.json(
+        { repos: [], rateLimit: null, error: 'Invalid genres parameter: malformed JSON' },
+        { status: 400 }
+      );
+    }
+  }
+
+  // Parse excludeIds with error handling
+  let excludeIds: number[] = [];
+  const excludeIdsParam = searchParams.get('excludeIds');
+  if (excludeIdsParam) {
+    try {
+      excludeIds = JSON.parse(excludeIdsParam);
+      // Validate it's an array of numbers
+      if (!Array.isArray(excludeIds) || !excludeIds.every(id => typeof id === 'number')) {
+        throw new Error('excludeIds must be an array of numbers');
+      }
+    } catch (error) {
+      return NextResponse.json(
+        { repos: [], rateLimit: null, error: 'Invalid excludeIds parameter: must be a JSON array of numbers' },
+        { status: 400 }
+      );
+    }
+  }
   const candidatePoolSize = searchParams.get('candidatePoolSize') ? parseInt(searchParams.get('candidatePoolSize')!, 10) : 50;
   const resultCount = searchParams.get('resultCount') ? parseInt(searchParams.get('resultCount')!, 10) : 5;
 
