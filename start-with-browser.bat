@@ -56,9 +56,9 @@ echo.
 REM Wait a bit for the server to start, then open browser (in background)
 start /b "" cmd /c "timeout /t 3 /nobreak >nul && start http://localhost:%PORT%"
 
-REM Set PORT and start Next.js dev server directly (not through npm)
+REM Set PORT and start Next.js dev server using npx (finds local next in node_modules)
 set PORT=%PORT%
-next dev -p %PORT%
+npx next dev -p %PORT%
 
 REM If we get here, the server exited
 echo.

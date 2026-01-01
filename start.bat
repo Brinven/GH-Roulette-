@@ -53,9 +53,9 @@ echo       Then run: start.bat
 echo       Or edit this file and change the default port
 echo.
 
-REM Set PORT and start Next.js dev server
+REM Set PORT and start Next.js dev server using npx (finds local next in node_modules)
 set PORT=%PORT%
-next dev -p %PORT%
+npx next dev -p %PORT%
 
 REM If we get here, the server exited
 echo.
