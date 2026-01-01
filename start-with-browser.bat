@@ -38,21 +38,29 @@ if not exist "node_modules" (
 echo.
 echo [2/3] Starting development server...
 echo.
-echo The app will be available at: http://localhost:3000
+
+REM Set default port to 3001 (to avoid conflicts with OpenWebUI on 3000)
+REM You can override by setting PORT environment variable before running this script
+if not defined PORT set PORT=3001
+
+echo The app will be available at: http://localhost:%PORT%
 echo Browser will open automatically in 3 seconds...
 echo Press Ctrl+C to stop the server
 echo.
+echo Note: To change the port, set PORT=XXXX before running this script
+echo       Example: set PORT=3002
+echo       Then run: start-with-browser.bat
+echo       Or edit this file and change the default port
+echo.
 
-REM Wait a bit for the server to start, then open browser
-start "" cmd /c "timeout /t 3 /nobreak >nul && start http://localhost:3000"
+REM Wait a bit for the server to start, then open browser (in background)
+start /b "" cmd /c "timeout /t 3 /nobreak >nul && start http://localhost:%PORT%"
 
-REM Start the dev server
-call npm run dev
+REM Set PORT and start Next.js dev server directly (not through npm)
+set PORT=%PORT%
+next dev -p %PORT%
 
-REM If the server exits, pause so user can see any error messages
-if %ERRORLEVEL% NEQ 0 (
-    echo.
-    echo Server exited with an error.
-    pause
-)
-
+REM If we get here, the server exited
+echo.
+echo Server has stopped.
+pause

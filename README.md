@@ -30,16 +30,27 @@ Discover random GitHub repositories with a single click. Perfect for when you're
    npm install
    ```
 
-3. **(Optional) Create a `.env.local` file for a GitHub token:**
+3. **(Optional) Create a `.env.local` file for configuration:**
    ```bash
    # Create the file
    echo "GITHUB_TOKEN=your_token_here" > .env.local
+   echo "PORT=3001" >> .env.local
    ```
    
    Or manually create `.env.local` in the root directory with:
    ```
    GITHUB_TOKEN=your_token_here
+   PORT=3001
    ```
+   
+   **Configuration Options:**
+   - `GITHUB_TOKEN`: Your GitHub personal access token (optional, increases rate limits)
+   - `PORT`: Port number for the development server (default: 3001)
+     - Changed from 3000 to avoid conflicts with OpenWebUI
+     - You can change the port by:
+       - Setting `PORT=XXXX` environment variable before running the batch files
+       - Editing the batch files and changing the default port
+       - Using `PORT=XXXX npm run dev` when running directly
    
    **Getting a GitHub Token:**
    - Go to [github.com/settings/tokens](https://github.com/settings/tokens)
@@ -57,7 +68,9 @@ Discover random GitHub repositories with a single click. Perfect for when you're
    ```
 
 5. **Open your browser:**
-   Navigate to [http://localhost:3000](http://localhost:3000)
+   Navigate to [http://localhost:3001](http://localhost:3001) (or the port you configured)
+   
+   **Note:** The default port is 3001 (instead of 3000) to avoid conflicts with OpenWebUI. You can change it by setting `PORT=XXXX` in `.env.local`.
 
 ## How It Works
 
@@ -297,6 +310,19 @@ Create `.env.local` (not committed to git):
 
 ```
 GITHUB_TOKEN=ghp_your_token_here
+PORT=3001
+```
+
+**Note:** Next.js reads `PORT` from the environment variable. The batch files (`start.bat` and `start-with-browser.bat`) automatically read `PORT` from `.env.local` or default to 3001. If you're running `npm run dev` directly, you can set the port with:
+
+**Windows (PowerShell/CMD):**
+```bash
+set PORT=3001 && npm run dev
+```
+
+**Linux/Mac:**
+```bash
+PORT=3001 npm run dev
 ```
 
 ## Troubleshooting
