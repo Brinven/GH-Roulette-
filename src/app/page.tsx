@@ -17,9 +17,26 @@ export default function DiscoverPage() {
   const [rateLimit, setRateLimit] = useState<RateLimitInfo | null>(null);
   const [filters, setFilters] = useState<Filters>({});
   const [genres, setGenres] = useState<Genre[]>([]);
+  const [resultCount, setResultCount] = useState(5);
+  const [hasToken, setHasToken] = useState(false);
+
+  // Check for token on mount and when component becomes visible
+  const checkToken = () => {
+    const settings = getSettings();
+    setHasToken(!!settings.githubToken);
+    if (!settings.githubToken) {
+      setResultCount(5);
+    }
+  };
 
   useEffect(() => {
     setGenres(getGenres());
+    checkToken();
+    
+    // Check token when window regains focus (user might have added token in settings)
+    const handleFocus = () => checkToken();
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
   }, []);
 
   const handleDiscover = async () => {
@@ -38,6 +55,10 @@ export default function DiscoverPage() {
       if (filters.minStars) params.set('minStars', filters.minStars.toString());
       if (genresParam) params.set('genres', genresParam);
       if (excludeIds.length > 0) params.set('excludeIds', JSON.stringify(excludeIds));
+      // Add result count if token is present (allows 5-10 repos)
+      if (settings.githubToken && resultCount !== 5) {
+        params.set('resultCount', resultCount.toString());
+      }
 
       const headers: HeadersInit = {};
       if (settings.githubToken) {
@@ -109,6 +130,34 @@ export default function DiscoverPage() {
               onReset={handleResetFilters}
             />
 
+            {/* Repo Count Slider - Only show when token is present */}
+            {hasToken && (
+              <div className="border rounded-lg p-4 bg-white">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Number of Repos: <span className="font-bold text-blue-600">{resultCount}</span>
+                </label>
+                <input
+                  type="range"
+                  min="5"
+                  max="10"
+                  value={resultCount}
+                  onChange={(e) => setResultCount(parseInt(e.target.value, 10))}
+                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                />
+                <div className="flex justify-between text-xs text-gray-500 mt-1">
+                  <span>5</span>
+                  <span>6</span>
+                  <span>7</span>
+                  <span>8</span>
+                  <span>9</span>
+                  <span>10</span>
+                </div>
+                <p className="text-xs text-gray-500 mt-2">
+                  Adjust how many repos to discover (requires GitHub token for higher limits)
+                </p>
+              </div>
+            )}
+
             <button
               onClick={handleDiscover}
               disabled={!canDiscover}
@@ -118,7 +167,7 @@ export default function DiscoverPage() {
                   : 'bg-gray-400 cursor-not-allowed'
               }`}
             >
-              {loading ? 'Discovering...' : 'Find 5 Random Repos'}
+              {loading ? 'Discovering...' : `Find ${resultCount} Random Repos`}
             </button>
 
             {error && (
@@ -147,6 +196,11 @@ export default function DiscoverPage() {
               <div className="space-y-4">
                 <h2 className="text-xl font-semibold text-gray-900 mb-4">
                   Found {repos.length} {repos.length === 1 ? 'repo' : 'repos'}
+                  {repos.length < resultCount && (
+                    <span className="text-sm font-normal text-gray-500 ml-2">
+                      (requested {resultCount}, but {resultCount - repos.length} were filtered out)
+                    </span>
+                  )}
                 </h2>
                 {repos.map(repo => (
                   <RepoCard key={repo.id} repo={repo} />

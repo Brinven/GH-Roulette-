@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { getSavedRepos, removeSavedRepo, SavedRepo } from '@/lib/storage/localStore';
+import { getSavedRepos, removeSavedRepo, saveRepo, SavedRepo } from '@/lib/storage/localStore';
 
 export default function SavedPage() {
   const router = useRouter();
@@ -24,6 +24,99 @@ export default function SavedPage() {
     }
   };
 
+  const handleExport = () => {
+    const dataStr = JSON.stringify(saved, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(dataBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `github-roulette-saved-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  const handleExportCSV = () => {
+    const headers = ['ID', 'Full Name', 'URL', 'Description', 'Saved At'];
+    const rows = saved.map(repo => [
+      repo.id.toString(),
+      repo.full_name,
+      repo.html_url,
+      repo.description || '',
+      new Date(repo.savedAt).toISOString(),
+    ]);
+    
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.map(cell => `"${cell.replace(/"/g, '""')}"`).join(','))
+    ].join('\n');
+    
+    const dataBlob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(dataBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `github-roulette-saved-${new Date().toISOString().split('T')[0]}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  const handleImport = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const content = e.target?.result as string;
+        const imported = JSON.parse(content);
+        
+        if (!Array.isArray(imported)) {
+          alert('Invalid file format. Expected an array of repos.');
+          return;
+        }
+
+        // Validate structure
+        const validRepos = imported.filter((repo: any) => 
+          repo.id && repo.full_name && repo.html_url
+        );
+
+        if (validRepos.length === 0) {
+          alert('No valid repos found in file.');
+          return;
+        }
+
+        if (confirm(`Import ${validRepos.length} repos? Duplicates will be skipped.`)) {
+          let importedCount = 0;
+          validRepos.forEach((repo: any) => {
+            // Check if already exists
+            if (!saved.find(r => r.id === repo.id)) {
+              saveRepo({
+                id: repo.id,
+                full_name: repo.full_name,
+                html_url: repo.html_url,
+                description: repo.description || null,
+              });
+              importedCount++;
+            }
+          });
+          
+          setSaved(getSavedRepos());
+          alert(`Imported ${importedCount} new repos. ${validRepos.length - importedCount} were duplicates.`);
+        }
+      } catch (error) {
+        alert('Error reading file. Please ensure it\'s a valid JSON file.');
+        console.error('Import error:', error);
+      }
+    };
+    reader.readAsText(file);
+    
+    // Reset input
+    event.target.value = '';
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-8 max-w-4xl">
@@ -32,7 +125,7 @@ export default function SavedPage() {
           <p className="text-gray-600">{saved.length} {saved.length === 1 ? 'repo' : 'repos'} saved</p>
         </div>
 
-        <div className="mb-4 flex gap-4">
+        <div className="mb-4 flex flex-wrap gap-4">
           <button
             onClick={() => router.push('/')}
             className="px-4 py-2 text-sm bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
@@ -40,13 +133,38 @@ export default function SavedPage() {
             ← Back to Discover
           </button>
           {saved.length > 0 && (
-            <button
-              onClick={handleClearAll}
-              className="px-4 py-2 text-sm bg-red-100 text-red-700 rounded hover:bg-red-200"
-            >
-              Clear All
-            </button>
+            <>
+              <button
+                onClick={handleExport}
+                className="px-4 py-2 text-sm bg-green-100 text-green-700 rounded hover:bg-green-200"
+                title="Export saved repos as JSON"
+              >
+                Export JSON
+              </button>
+              <button
+                onClick={handleExportCSV}
+                className="px-4 py-2 text-sm bg-green-100 text-green-700 rounded hover:bg-green-200"
+                title="Export saved repos as CSV"
+              >
+                Export CSV
+              </button>
+              <button
+                onClick={handleClearAll}
+                className="px-4 py-2 text-sm bg-red-100 text-red-700 rounded hover:bg-red-200"
+              >
+                Clear All
+              </button>
+            </>
           )}
+          <label className="px-4 py-2 text-sm bg-blue-100 text-blue-700 rounded hover:bg-blue-200 cursor-pointer">
+            Import
+            <input
+              type="file"
+              accept=".json"
+              onChange={handleImport}
+              className="hidden"
+            />
+          </label>
         </div>
 
         {saved.length === 0 ? (
