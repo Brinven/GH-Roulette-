@@ -4,9 +4,10 @@ Discover random GitHub repositories with a single click. Perfect for when you're
 
 ## Features
 
-- **Find 5 Random Repos**: One button to discover 5 random public repositories
+- **Find 5-10 Random Repos**: One button to discover random public repositories (5 by default, 5-10 with GitHub token)
 - **Topic-Based Genre Filtering**: Optional filters to bias results toward specific topics (LLM, Web Dev, Games, etc.)
 - **Save & Track History**: Save repos you like and track what you've seen to avoid repeats
+- **Export/Import Saved Repos**: Export your saved repos as JSON or CSV, import repos from others
 - **Rate Limit Monitoring**: Real-time display of remaining API requests and reset timer
 - **Local Storage**: Everything stored locally - no account required
 
@@ -122,9 +123,9 @@ The app shows your remaining requests and when the limit resets. The "Find" butt
 
 ### Discovering Repos
 
-1. **On the main page**, click the **"Find 5 Random Repos"** button
+1. **On the main page**, click the **"Find 5 Random Repos"** button (or "Find X Random Repos" if you have a token)
 2. Wait a few seconds while the app searches GitHub
-3. **5 random repositories** will appear as cards
+3. **Random repositories** will appear as cards (5 by default, or 5-10 if you have a GitHub token)
 4. Each card shows:
    - Repository name and owner
    - Description
@@ -134,12 +135,31 @@ The app shows your remaining requests and when the limit resets. The "Find" butt
    - "Open on GitHub" button
    - Save button (☆)
 
+**Repo Count Slider (Token Required):**
+- If you've added a GitHub token, a slider will appear allowing you to adjust the number of repos (5-10)
+- Move the slider to discover more repos per search
+- This feature requires a GitHub token due to higher rate limits needed
+- Without a token, the default is 5 repos per search
+
 ### Saving Repos
 
 - Click the **star icon (☆)** on any repo card to save it
 - The icon changes to **★** when saved
 - Click again to unsave
 - View all saved repos on the **"Saved Repos"** page (accessible from the top navigation)
+
+**Export Saved Repos:**
+- Click **"Export JSON"** to download your saved repos as a JSON file
+- Click **"Export CSV"** to download as a CSV file (spreadsheet-friendly)
+- Files are named with the current date (e.g., `github-roulette-saved-2024-01-15.json`)
+- Perfect for backing up your discoveries or sharing with others
+
+**Import Saved Repos:**
+- Click **"Import"** button and select a JSON file
+- The app will validate the file and show how many repos will be imported
+- Duplicates are automatically skipped (repos you already have)
+- You'll see a summary: "Imported X new repos. Y were duplicates."
+- Great for importing discoveries shared by friends or restoring from backup
 
 ### Using Filters
 
@@ -386,7 +406,6 @@ PORT=3001 npm run dev
 Potential additions (see PRD for full backlog):
 
 - "Chaos dial" for obscurity vs popularity slider
-- Export saved repos (JSON/CSV)
 - Import/export genres
 - Session streak counter ("you've explored 25 repos today")
 - Notes/tags on saved repos
@@ -394,6 +413,7 @@ Potential additions (see PRD for full backlog):
 - Desktop app wrapper (Tauri/Electron)
 - Exclude topics list
 - Better randomness algorithms
+- Batch import from multiple files
 
 ## Contributing
 
