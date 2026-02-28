@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { ArrowLeft, DownloadSimple, Trash, UploadSimple, ArrowSquareOut } from '@phosphor-icons/react';
 import { getSavedRepos, removeSavedRepo, saveRepo, SavedRepo } from '@/lib/storage/localStore';
 
 export default function SavedPage() {
@@ -46,12 +47,12 @@ export default function SavedPage() {
       repo.description || '',
       new Date(repo.savedAt).toISOString(),
     ]);
-    
+
     const csvContent = [
       headers.join(','),
       ...rows.map(row => row.map(cell => `"${cell.replace(/"/g, '""')}"`).join(','))
     ].join('\n');
-    
+
     const dataBlob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(dataBlob);
     const link = document.createElement('a');
@@ -72,14 +73,13 @@ export default function SavedPage() {
       try {
         const content = e.target?.result as string;
         const imported = JSON.parse(content);
-        
+
         if (!Array.isArray(imported)) {
           alert('Invalid file format. Expected an array of repos.');
           return;
         }
 
-        // Validate structure
-        const validRepos = imported.filter((repo: any) => 
+        const validRepos = imported.filter((repo: any) =>
           repo.id && repo.full_name && repo.html_url
         );
 
@@ -91,7 +91,6 @@ export default function SavedPage() {
         if (confirm(`Import ${validRepos.length} repos? Duplicates will be skipped.`)) {
           let importedCount = 0;
           validRepos.forEach((repo: any) => {
-            // Check if already exists
             if (!saved.find(r => r.id === repo.id)) {
               saveRepo({
                 id: repo.id,
@@ -102,7 +101,7 @@ export default function SavedPage() {
               importedCount++;
             }
           });
-          
+
           setSaved(getSavedRepos());
           alert(`Imported ${importedCount} new repos. ${validRepos.length - importedCount} were duplicates.`);
         }
@@ -112,51 +111,55 @@ export default function SavedPage() {
       }
     };
     reader.readAsText(file);
-    
-    // Reset input
+
     event.target.value = '';
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-zinc-950">
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         <div className="mb-6">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">Saved Repos</h1>
-          <p className="text-gray-600">{saved.length} {saved.length === 1 ? 'repo' : 'repos'} saved</p>
+          <h1 className="text-4xl font-bold text-zinc-100 mb-2">Saved Repos</h1>
+          <p className="text-zinc-400">{saved.length} {saved.length === 1 ? 'repo' : 'repos'} saved</p>
         </div>
 
-        <div className="mb-4 flex flex-wrap gap-4">
+        <div className="mb-4 flex flex-wrap gap-3">
           <button
             onClick={() => router.push('/')}
-            className="px-4 py-2 text-sm bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
+            className="inline-flex items-center gap-2 rounded-lg border border-white/[0.06] bg-zinc-800 px-4 py-2 text-sm text-zinc-300 transition-colors hover:bg-zinc-700"
           >
-            ← Back to Discover
+            <ArrowLeft size={16} weight="bold" />
+            Back to Discover
           </button>
           {saved.length > 0 && (
             <>
               <button
                 onClick={handleExport}
-                className="px-4 py-2 text-sm bg-green-100 text-green-700 rounded hover:bg-green-200"
+                className="inline-flex items-center gap-2 rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-4 py-2 text-sm text-emerald-400 transition-colors hover:bg-emerald-500/20"
                 title="Export saved repos as JSON"
               >
+                <DownloadSimple size={16} weight="bold" />
                 Export JSON
               </button>
               <button
                 onClick={handleExportCSV}
-                className="px-4 py-2 text-sm bg-green-100 text-green-700 rounded hover:bg-green-200"
+                className="inline-flex items-center gap-2 rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-4 py-2 text-sm text-emerald-400 transition-colors hover:bg-emerald-500/20"
                 title="Export saved repos as CSV"
               >
+                <DownloadSimple size={16} weight="bold" />
                 Export CSV
               </button>
               <button
                 onClick={handleClearAll}
-                className="px-4 py-2 text-sm bg-red-100 text-red-700 rounded hover:bg-red-200"
+                className="inline-flex items-center gap-2 rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-2 text-sm text-red-400 transition-colors hover:bg-red-500/20"
               >
+                <Trash size={16} weight="bold" />
                 Clear All
               </button>
             </>
           )}
-          <label className="px-4 py-2 text-sm bg-blue-100 text-blue-700 rounded hover:bg-blue-200 cursor-pointer">
+          <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-white/[0.06] bg-zinc-800 px-4 py-2 text-sm text-zinc-300 transition-colors hover:bg-zinc-700">
+            <UploadSimple size={16} weight="bold" />
             Import
             <input
               type="file"
@@ -168,25 +171,25 @@ export default function SavedPage() {
         </div>
 
         {saved.length === 0 ? (
-          <div className="text-center py-12 text-gray-500">
+          <div className="text-center py-12 text-zinc-500">
             <p className="text-lg mb-2">No saved repos yet</p>
             <p className="text-sm">Start discovering and save repos you like!</p>
           </div>
         ) : (
           <div className="space-y-4">
             {saved.map(repo => (
-              <div key={repo.id} className="border rounded-lg p-4 bg-white shadow-sm">
+              <div key={repo.id} className="rounded-lg border border-white/[0.06] bg-zinc-900 p-4">
                 <div className="flex justify-between items-start">
                   <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                    <h3 className="text-lg font-semibold text-zinc-100 mb-1">
                       {repo.full_name}
                     </h3>
                     {repo.description && (
-                      <p className="text-sm text-gray-600 mb-2">
+                      <p className="text-sm text-zinc-400 mb-2">
                         {repo.description}
                       </p>
                     )}
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-zinc-600">
                       Saved {new Date(repo.savedAt).toLocaleString()}
                     </p>
                   </div>
@@ -195,14 +198,16 @@ export default function SavedPage() {
                       href={repo.html_url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm"
+                      className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-4 py-2 text-sm text-white transition-colors hover:bg-emerald-500"
                     >
-                      Open →
+                      Open
+                      <ArrowSquareOut size={14} weight="bold" />
                     </a>
                     <button
                       onClick={() => handleRemove(repo.id)}
-                      className="px-4 py-2 bg-red-100 text-red-700 rounded hover:bg-red-200 text-sm"
+                      className="inline-flex items-center gap-1.5 rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-2 text-sm text-red-400 transition-colors hover:bg-red-500/20"
                     >
+                      <Trash size={14} weight="bold" />
                       Remove
                     </button>
                   </div>
@@ -215,4 +220,3 @@ export default function SavedPage() {
     </div>
   );
 }
-

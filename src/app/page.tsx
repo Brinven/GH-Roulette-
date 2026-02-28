@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { Shuffle, BookmarkSimple, GearSix } from '@phosphor-icons/react';
 import RepoCard from '@/components/RepoCard';
 import FiltersPanel from '@/components/FiltersPanel';
 import RateLimitPanel from '@/components/RateLimitPanel';
@@ -20,7 +21,6 @@ export default function DiscoverPage() {
   const [resultCount, setResultCount] = useState(5);
   const [hasToken, setHasToken] = useState(false);
 
-  // Check for token on mount and when component becomes visible
   const checkToken = () => {
     const settings = getSettings();
     setHasToken(!!settings.githubToken);
@@ -32,8 +32,7 @@ export default function DiscoverPage() {
   useEffect(() => {
     setGenres(getGenres());
     checkToken();
-    
-    // Check token when window regains focus (user might have added token in settings)
+
     const handleFocus = () => checkToken();
     window.addEventListener('focus', handleFocus);
     return () => window.removeEventListener('focus', handleFocus);
@@ -55,7 +54,6 @@ export default function DiscoverPage() {
       if (filters.minStars) params.set('minStars', filters.minStars.toString());
       if (genresParam) params.set('genres', genresParam);
       if (excludeIds.length > 0) params.set('excludeIds', JSON.stringify(excludeIds));
-      // Add result count if token is present (allows 5-10 repos)
       if (settings.githubToken && resultCount !== 5) {
         params.set('resultCount', resultCount.toString());
       }
@@ -74,8 +72,7 @@ export default function DiscoverPage() {
       } else {
         setRepos(data.repos);
         setRateLimit(data.rateLimit);
-        
-        // Mark repos as seen
+
         data.repos.forEach((repo: GitHubRepo) => {
           addSeenRepo(repo.id);
         });
@@ -94,26 +91,31 @@ export default function DiscoverPage() {
   const canDiscover = !loading && (!rateLimit || rateLimit.remaining > 0);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-zinc-950">
       <div className="container mx-auto px-4 py-8 max-w-6xl">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">GitHub Roulette</h1>
-          <p className="text-gray-600">Discover random GitHub repositories</p>
+          <div className="flex items-center gap-3 mb-2">
+            <Shuffle size={32} weight="duotone" className="text-emerald-400" />
+            <h1 className="text-4xl font-bold text-zinc-100">GH Roulette</h1>
+          </div>
+          <p className="text-zinc-400">Discover random GitHub repositories</p>
         </div>
 
         {/* Navigation */}
-        <div className="mb-6 flex gap-4">
+        <div className="mb-6 flex gap-3">
           <button
             onClick={() => router.push('/saved')}
-            className="px-4 py-2 text-sm bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
+            className="inline-flex items-center gap-2 rounded-lg border border-white/[0.06] bg-zinc-800 px-4 py-2 text-sm text-zinc-300 transition-colors hover:bg-zinc-700"
           >
+            <BookmarkSimple size={16} weight="bold" />
             Saved Repos
           </button>
           <button
             onClick={() => router.push('/settings')}
-            className="px-4 py-2 text-sm bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
+            className="inline-flex items-center gap-2 rounded-lg border border-white/[0.06] bg-zinc-800 px-4 py-2 text-sm text-zinc-300 transition-colors hover:bg-zinc-700"
           >
+            <GearSix size={16} weight="bold" />
             Settings
           </button>
         </div>
@@ -122,7 +124,7 @@ export default function DiscoverPage() {
           {/* Left Column: Controls */}
           <div className="lg:col-span-1 space-y-4">
             <RateLimitPanel rateLimit={rateLimit} />
-            
+
             <FiltersPanel
               filters={filters}
               genres={genres}
@@ -130,11 +132,11 @@ export default function DiscoverPage() {
               onReset={handleResetFilters}
             />
 
-            {/* Repo Count Slider - Only show when token is present */}
+            {/* Repo Count Slider */}
             {hasToken && (
-              <div className="border rounded-lg p-4 bg-white">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Number of Repos: <span className="font-bold text-blue-600">{resultCount}</span>
+              <div className="rounded-lg border border-white/[0.06] bg-zinc-900 p-4">
+                <label className="block text-sm font-medium text-zinc-400 mb-2">
+                  Number of Repos: <span className="font-bold text-emerald-400">{resultCount}</span>
                 </label>
                 <input
                   type="range"
@@ -142,9 +144,9 @@ export default function DiscoverPage() {
                   max="10"
                   value={resultCount}
                   onChange={(e) => setResultCount(parseInt(e.target.value, 10))}
-                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                  className="w-full h-2 rounded-lg appearance-none cursor-pointer bg-zinc-800"
                 />
-                <div className="flex justify-between text-xs text-gray-500 mt-1">
+                <div className="flex justify-between text-xs text-zinc-600 mt-1">
                   <span>5</span>
                   <span>6</span>
                   <span>7</span>
@@ -152,7 +154,7 @@ export default function DiscoverPage() {
                   <span>9</span>
                   <span>10</span>
                 </div>
-                <p className="text-xs text-gray-500 mt-2">
+                <p className="text-xs text-zinc-500 mt-2">
                   Adjust how many repos to discover (requires GitHub token for higher limits)
                 </p>
               </div>
@@ -163,15 +165,15 @@ export default function DiscoverPage() {
               disabled={!canDiscover}
               className={`w-full px-6 py-3 rounded-lg font-semibold text-white transition-colors ${
                 canDiscover
-                  ? 'bg-blue-600 hover:bg-blue-700'
-                  : 'bg-gray-400 cursor-not-allowed'
+                  ? 'bg-emerald-600 hover:bg-emerald-500'
+                  : 'bg-zinc-700 text-zinc-500 cursor-not-allowed'
               }`}
             >
               {loading ? 'Discovering...' : `Find ${resultCount} Random Repos`}
             </button>
 
             {error && (
-              <div className="p-3 bg-red-50 border border-red-200 rounded text-sm text-red-700">
+              <div className="rounded-lg border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-400">
                 {error}
               </div>
             )}
@@ -180,24 +182,26 @@ export default function DiscoverPage() {
           {/* Right Column: Results */}
           <div className="lg:col-span-2">
             {repos.length === 0 && !loading && !error && (
-              <div className="text-center py-12 text-gray-500">
+              <div className="text-center py-12 text-zinc-500">
+                <Shuffle size={48} weight="duotone" className="mx-auto mb-3 text-zinc-700" />
                 <p className="text-lg mb-2">Ready to discover?</p>
-                <p className="text-sm">Click "Find 5 Random Repos" to get started!</p>
+                <p className="text-sm">Click the button to find random repos</p>
               </div>
             )}
 
             {loading && (
               <div className="text-center py-12">
-                <p className="text-gray-600">Discovering repositories...</p>
+                <div className="inline-block h-6 w-6 animate-spin rounded-full border-2 border-emerald-500 border-t-transparent mb-3" />
+                <p className="text-zinc-400">Discovering repositories...</p>
               </div>
             )}
 
             {repos.length > 0 && (
               <div className="space-y-4">
-                <h2 className="text-xl font-semibold text-gray-900 mb-4">
+                <h2 className="text-xl font-semibold text-zinc-100 mb-4">
                   Found {repos.length} {repos.length === 1 ? 'repo' : 'repos'}
                   {repos.length < resultCount && (
-                    <span className="text-sm font-normal text-gray-500 ml-2">
+                    <span className="text-sm font-normal text-zinc-500 ml-2">
                       (requested {resultCount}, but {resultCount - repos.length} were filtered out)
                     </span>
                   )}
@@ -213,4 +217,3 @@ export default function DiscoverPage() {
     </div>
   );
 }
-
